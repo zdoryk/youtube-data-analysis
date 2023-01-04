@@ -2,7 +2,7 @@
 
 ### Main goal
 
-The main goal was to launch data-driven campaign.
+The main goal was to launch a data-driven campaign.
 
 ### Subgoals
 
@@ -15,22 +15,22 @@ The main goal was to launch data-driven campaign.
 
 ### Main advertising channel
 
-YouTube was selected as main advertiseing channel.
+YouTube was selected as the main advertising channel.
 
 #### Why Youtube?
 
-YouTube is second most visited website in the entire world.&#x20;
+YouTube is the second most visited website in the entire world.&#x20;
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption><p><a href="https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/">https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/</a></p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption><p><a href="https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/">https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/</a></p></figcaption></figure>
 
 ### Initial questions to answer:&#x20;
 
-* How to categorise videos, based on their comments and statistics.
+* How to categorize videos, based on their comments and statistics.
 * What factors affect how popular a YouTube video will be.
 
 ### Used dataset
 
-<img src=".gitbook/assets/image (3).png" alt="" data-size="line"> Dataset was taken from here:&#x20;
+<img src=".gitbook/assets/image (3).png" alt="" data-size="line"> The dataset was taken from here:&#x20;
 
 [https://www.kaggle.com/datasets/datasnaek/youtube-new](https://www.kaggle.com/datasets/datasnaek/youtube-new)&#x20;
 
@@ -38,7 +38,7 @@ For future development there is an option to take this one that updates daily:
 
 [https://www.kaggle.com/datasets/rsrishav/youtube-trending-video-dataset](https://www.kaggle.com/datasets/rsrishav/youtube-trending-video-dataset)
 
-### Architecture of the project
+### The architecture of the project
 
 <figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption><p>Data Flow diagram</p></figcaption></figure>
 
@@ -48,13 +48,13 @@ For future development there is an option to take this one that updates daily:
 
 ### Data Lake
 
-Project required to create tree s3 buckets.
+The project required to create of three s3 buckets.
 
 #### Landing area
 
-Landing area - is a bucket for raw data from dataset.
+Landing area - is a bucket for raw data from the dataset.
 
-Landing bucket has next structure:
+The landing bucket has next structure:
 
 <pre><code>&#x3C;!---
 <strong>Here will be a tree of s3 bucket
@@ -65,7 +65,7 @@ Landing bucket has next structure:
 
 #### Cleansed/Enriched&#x20;
 
-Cleansed/Enriched - bucket for cleansed data after processing through "Data processing" layer.
+Cleansed/Enriched - bucket for cleansed data after processing through the "Data processing" layer.
 
 Cleansed/Enriched bucket has next structure:
 
@@ -76,7 +76,7 @@ Cleansed/Enriched bucket has next structure:
 
 #### Analytics/Reporting
 
-Analytics/Reporting  - is bucket for data that is ready for BI proces
+Analytics/Reporting  - is a bucket for data that is ready for the BI process
 
 Analytics/Reporting bucket has next structure:
 
@@ -87,9 +87,9 @@ Analytics/Reporting bucket has next structure:
 
 
 
-### My development proces:
+### My development process:
 
-First of all an IAM user with the required permissions has been created. All further actions was made from this user account.
+First of all, an IAM user with the required permissions has been created. All further actions were made from this user account.
 
 ```
 <!---
@@ -97,7 +97,7 @@ Here will be a configuration screen
 -->
 ```
 
-Then "Landing Area" s3 bucket need to be created. Landing area is just a bucket for raw data. \
+Then "Landing Area" s3 bucket needs to be created. The landing area is just a bucket for raw data. \
 The dataset was previously downloaded and saved in the project folder. This data then had to be copied to the s3 bucket. To do this, I ran the following commands:
 
 ```shell
@@ -122,14 +122,14 @@ aws s3 cp USvideos.csv s3://<bucket_name>/youtube/raw_statistics/region=us/
 
 
 
-After this step I needed to set up AWS Glue.
+After this step, I needed to set up AWS Glue.
 
 1. A database "youtube\_data\_analysis\_raw" in Glue was created
 2. A crawler "...-youtube-data-analysis-raw-glue-1" was created with next settings:
-   1. As data sourse i choosed s3 bucket path to .json files: s3://\<bucket\_name>/youtube/raw\_statistics\_reference\_data/
+   1. As data source i choose s3 bucket path to .json files: s3://\<bucket\_name>/youtube/raw\_statistics\_reference\_data/
    2. A new security group for crawler with required permissions was created and selected
-   3. A new Glue db was selected for output
-3.  &#x20;Crawler created a new table with next schema:
+   3. A new Glue DB was selected for output
+3.  &#x20;Crawler created a new table with the next schema:
 
     ```json
     [ 
@@ -141,7 +141,7 @@ After this step I needed to set up AWS Glue.
         } 
     ]
     ```
-4.  After that I noticed that files .json in dataset have this structure:
+4.  After that, I noticed that files .json in the dataset have this structure:
 
     ```json
     {
@@ -166,9 +166,9 @@ After this step I needed to set up AWS Glue.
        }
       },
     ```
-5. So i decided to process data through AWS lambda to get .parquet files instead of json
+5. So I decided to process data through AWS lambda to get .parquet files instead of JSON
 
-I needed to build a pipeline that will cleansing data from semi-structured to structured form.
+I needed to build a pipeline that will cleanse data from a semi-structured to a structured form.
 
 <figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption><p>Data pipeline diagram</p></figcaption></figure>
 
@@ -177,13 +177,13 @@ To do this a Lambda function was created with next properties:
 1. Name - youtube-data-analysis-lambda-json-to-parquet
 2. Langueage - Python 3.9
 3. Architecture - x86\_64
-4. Also new role with required permissions was created
+4. Also, new role with required permissions was created
 
-After this, new enviroment variables were added:
+After this, new environment variables were added:
 
 <figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption><p>Enviroment variables (s3_cleansed_layer value was changed in web developer tools for this screenshot)</p></figcaption></figure>
 
-Next step was to write a python script:
+The next step was to write a python script:
 
 ```python
 import awswrangler as wr
@@ -226,3 +226,72 @@ def lambda_handler(event, context):
         print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
         raise e
 ```
+
+
+
+The next thing that I did is set the timeout value to 3 minutes (by default timeout is set to 3 seconds):
+
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption><p>General configuration with timeout screenshot</p></figcaption></figure>
+
+Then it was necessary to configure the test case, in the configuration window I needed to change all "< example bucket>" on an actual bucket name, and also change the "key" value to a path to a test object.&#x20;
+
+After deployment and test run, I had the next error: "Unable to import module 'lambda\_function': No module named 'awswrangler'". \
+To fix this problem I have just added a wrangler layer from the official aws layers.
+
+After the next test run output was:
+
+```json
+Test Event Name
+s3_put
+
+Response
+{
+  "paths": [
+    "s3://<bucket_name>/youtube/1343c694254f4fad9c48cebeeff198ea.snappy.parquet"
+  ],
+  "partitions_values": {}
+}
+
+Function Logs
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+START RequestId: b1e89cf6-4f3b-4b51-90db-6d9a7f458978 Version: $LATEST
+END RequestId: b1e89cf6-4f3b-4b51-90db-6d9a7f458978
+REPORT RequestId: b1e89cf6-4f3b-4b51-90db-6d9a7f458978	Duration: 8389.00 ms	Billed Duration: 8389 ms	Memory Size: 128 MB	Max Memory Used: 128 MB	Init Duration: 4014.33 ms
+
+Request ID
+b1e89cf6-4f3b-4b51-90db-6d9a7f458978
+```
+
+A .parquet file in the new s3 bucket and a new DB with a new table in Glue were created.
+
+
+
+After that I wanted to query the result using AWS Athena, so:
+
+1. I created a new bucket for the output of the Athena job.&#x20;
+2. On the Glue table page clicked on Actions -> View Data.
+3. Specified Athena output settings to newly created s3 bucket.
+4. Then run select \* ... and get the results:
+
+| kind                  | etag                                                        | id | snippet\_channelid       | snippet\_title   | snippet\_assignable |
+| --------------------- | ----------------------------------------------------------- | -- | ------------------------ | ---------------- | ------------------- |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/Xy1mB4\_yLrHy\_BmKmPBggty2mZQ" | 1  | UCBR8-60-B28hp2BmDPdntcQ | Film & Animation | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/UZ1oLIIz2dxIhO45ZTFR3a3NyTA"   | 2  | UCBR8-60-B28hp2BmDPdntcQ | Autos & Vehicles | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/nqRIq97-xe5XRZTxbknKFVe5Lmg"   | 10 | UCBR8-60-B28hp2BmDPdntcQ | Music            | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/HwXKamM1Q20q9BN-oBJavSGkfDI"   | 15 | UCBR8-60-B28hp2BmDPdntcQ | Pets & Animals   | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/9GQMSRjrZdHeb1OEM1XVQ9zbGec"   | 17 | UCBR8-60-B28hp2BmDPdntcQ | Sports           | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/FJwVpGCVZ1yiJrqZbpqe68Sy\_OE"  | 18 | UCBR8-60-B28hp2BmDPdntcQ | Short Movies     | false               |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/M-3iD9dwK7YJCafRf\_DkLN8CouA"  | 19 | UCBR8-60-B28hp2BmDPdntcQ | Travel & Events  | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/WmA0qYEfjWsAoyJFSw2zinhn2wM"   | 20 | UCBR8-60-B28hp2BmDPdntcQ | Gaming           | true                |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/EapFaGYG7K0StIXVf8aba249tdM"   | 21 | UCBR8-60-B28hp2BmDPdntcQ | Videoblogging    | false               |
+| youtube#videoCategory | "m2yskBQFythfE4irbTIeOgYYfBU/xId8RX7vRN8rqkbYZbNIytUQDRo"   | 22 | UCBR8-60-B28hp2BmDPdntcQ | People & Blogs   | -true               |
+
+
+
+
+
+## TODO:
+
+## Automate datapipeline through lambda.
+
+### Use the data to build dashboard
