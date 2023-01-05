@@ -21,7 +21,7 @@ YouTube was selected as the main advertising channel.
 
 YouTube is the second most visited website in the entire world.&#x20;
 
-<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption><p><a href="https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/">https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/</a></p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (5) (1).png" alt=""><figcaption><p><a href="https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/">https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/</a></p></figcaption></figure>
 
 ### Initial questions to answer:&#x20;
 
@@ -54,50 +54,21 @@ The project required to create of three s3 buckets.
 
 Landing area - is a bucket for raw data from the dataset.
 
-The landing bucket has next structure:
-
-<pre><code>&#x3C;!---
-<strong>Here will be a tree of s3 bucket
-</strong>-->
-</code></pre>
-
-
-
 #### Cleansed/Enriched&#x20;
 
 Cleansed/Enriched - bucket for cleansed data after processing through the "Data processing" layer.
 
-Cleansed/Enriched bucket has next structure:
-
-<pre><code>&#x3C;!---
-<strong>Here will be a tree of s3 bucket
-</strong>-->
-</code></pre>
-
 #### Analytics/Reporting
 
-Analytics/Reporting  - is a bucket for data that is ready for the BI process
-
-Analytics/Reporting bucket has next structure:
-
-<pre><code>&#x3C;!---
-<strong>Here will be a tree of s3 bucket
-</strong>-->
-</code></pre>
-
-
+Analytics/Reporting  - is a bucket for data that is ready for the BI process.
 
 ### My development process:
 
 First of all, an IAM user with the required permissions has been created. All further actions were made from this user account.
 
-```
-<!---
-Here will be a configuration screen 
--->
-```
 
-Then "Landing Area" s3 bucket needs to be created. The landing area is just a bucket for raw data. \
+
+Then "Landing Area" s3 bucket needs to be created. \
 The dataset was previously downloaded and saved in the project folder. This data then had to be copied to the s3 bucket. To do this, I ran the following commands:
 
 ```shell
@@ -119,8 +90,6 @@ aws s3 cp MXvideos.csv s3://<bucket_name>/youtube/raw_statistics/region=mx/
 aws s3 cp RUvideos.csv s3://<bucket_name>/youtube/raw_statistics/region=ru/
 aws s3 cp USvideos.csv s3://<bucket_name>/youtube/raw_statistics/region=us/
 ```
-
-
 
 After this step, I needed to set up AWS Glue.
 
@@ -181,7 +150,7 @@ To do this a Lambda function was created with next properties:
 
 After this, new environment variables were added:
 
-<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption><p>Enviroment variables (s3_cleansed_layer value was changed in web developer tools for this screenshot)</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1) (1).png" alt=""><figcaption><p>Enviroment variables (s3_cleansed_layer value was changed in web developer tools for this screenshot)</p></figcaption></figure>
 
 The next step was to write a python script:
 
@@ -231,7 +200,7 @@ def lambda_handler(event, context):
 
 The next thing that I did is set the timeout value to 3 minutes (by default timeout is set to 3 seconds):
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption><p>General configuration with timeout screenshot</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (9).png" alt=""><figcaption><p>General configuration with timeout screenshot</p></figcaption></figure>
 
 Then it was necessary to configure the test case, in the configuration window I needed to change all "< example bucket>" on an actual bucket name, and also change the "key" value to a path to a test object.&#x20;
 
@@ -288,10 +257,142 @@ After that I wanted to query the result using AWS Athena, so:
 
 
 
+The next step was to create a crawler to crawl over all .csv files.  \<bucket\_name>-csv-crawler-1 was created and started.  \
+\
+Crawler created a new partitioned table.
+
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+The table is partitioned by the "region" key which was the reason to place each CSV file in to separate folder:
+
+```shell
+dzdoryk@dzdoryk:~$ aws s3 ls s3://<bucket_name>/youtube/raw_statistics/ --recursive
+2023-01-03 18:19:28   64067991 youtube/raw_statistics/region=ca/CAvideos.csv
+2023-01-03 18:20:16   63040138 youtube/raw_statistics/region=de/DEvideos.csv
+2023-01-03 18:22:00   51424708 youtube/raw_statistics/region=fr/FRvideos.csv
+2023-01-03 18:22:15   53213441 youtube/raw_statistics/region=gb/GBvideos.csv
+2023-01-03 18:22:31   59600439 youtube/raw_statistics/region=in/INvideos.csv
+2023-01-03 18:22:49   28740747 youtube/raw_statistics/region=jp/JPvideos.csv
+2023-01-03 18:23:02   34835868 youtube/raw_statistics/region=kr/KRvideos.csv
+2023-01-03 18:23:14   45191541 youtube/raw_statistics/region=mx/MXvideos.csv
+2023-01-03 18:23:28   76268286 youtube/raw_statistics/region=ru/RUvideos.csv
+2023-01-03 18:23:50   62756152 youtube/raw_statistics/region=us/USvideos.csv
+
+```
+
+This will have a huge impact on performance because now when data will be queried by a specific region, it will only read data from a specific folder rather than all the data.
+
+I  noticed that the id type in .parquet is a string when in a new Glue table from .csv file category\_id attribute is a bigint so I need to fix this:
+
+1. In the Glue console, I changed the reference data id type to bigint.&#x20;
+2. Delete .parquet file form s3- cleaned bucket.
+3. Run a lambda script one more time.&#x20;
+
+To easily view the data in the Glue table I switched to Athena. Then I joined cleaned reference data from .json files with actual data from .csv files:
+
+<pre class="language-sql"><code class="lang-sql">SELECT stat.title, stat.category_id, ref.snippet_title FROM "AwsDataCatalog"."youtube_data_analysis_raw"."raw_statistics" stat
+<strong>join "db_youtube_cleaned"."cleaned_statistics_reference_data" ref on stat.category_id = ref.id
+</strong>where region = 'us'
+limit 5;
+
+</code></pre>
+
+From this data, we can tell which video has which category title in the USA:
+
+| # | title                                                                                | category\_id | snippet\_title   |
+| - | ------------------------------------------------------------------------------------ | ------------ | ---------------- |
+| 1 | Film Theory: The Bee Movie LIED To You!                                              | 1            | Film & Animation |
+| 2 | Crazy Frosting Recipe: The Best Buttercream Frosting with Endless Flavor Variations! | 26           | Howto & Style    |
+| 3 | February Favorites 2018                                                              | 26           | Howto & Style    |
+| 4 | She Ruined The Surprise Gender Reveal                                                | 22           | People & Blogs   |
+| 5 | One thing that makes you a better friend                                             | 23           | Comedy           |
 
 
-## TODO:
 
-## Automate datapipeline through lambda.
+When all this work was done, it was necessary to run a Glue ETL job on top of the data from the .csv files to write the cleaned version on s3 "cleaned" bucket.
 
-### Use the data to build dashboard
+&#x20; This job was written using PySpark.
+
+Because I was interested only in these regions: \['GB', 'US', 'CA']. I filtered input, and get records only from these regions using predicate\_pushdown:
+
+```python
+predicate_pushdown = "region in ('ca','gb','us')"
+datasource0 = glueContext.create_dynamic_frame.from_catalog(database = "youtube_data_analysis_raw", table_name = "raw_statistics", 
+                                                            transformation_ctx = "datasource0", push_down_predicate = predicate_pushdown)
+```
+
+I mapped all the values and apply them through `ResolveChoice.apply()` \
+Also, all fields with null were dropped:
+
+```python
+dropnullfields3 = DropNullFields.apply(frame = resolvechoice2, transformation_ctx = "dropnullfields3")
+```
+
+Then the dynamic frame was created:
+
+```python
+datasink1 = dropnullfields3.toDF().coalesce(1)
+df_final_output = DynamicFrame.fromDF(datasink1, glueContext, "df_final_output")
+```
+
+After that the data was written to the files in s3 bucket for cleansed data:
+
+```python
+datasink4 = glueContext.write_dynamic_frame.from_options(
+    frame = df_final_output, 
+    connection_type = "s3", 
+    connection_options = {
+        "path": "s3://<bucket_name>/youtube/raw_statistics/", 
+        "partitionKeys": ["region"]  # Need to be here to write data into the separate files
+    }, 
+    format = "parquet", 
+    transformation_ctx = "datasink4"
+)
+```
+
+The job was saved and started. After the job is completed successfully, three separate folders with  .parquet files in them were created.
+
+The next step was to create a new crawler that will crawl over new .parquet files.\
+The Glue "db\_youtube\_cleaned" DB was selected as the target database.
+
+When the crawler completed its work, it created a new partitioned table:
+
+<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
+
+Then there was a need to automate the lambda function. So the trigger on the /youtube/raw-statistic-reference-data was created:
+
+1. Trigger was on all object create events
+2. And in the suffix filed I wrote ".json"
+
+After trigger was created, all the data from s3://\<bucket\_name>/youtube/raw-statistic-reference-data was deleted. And uploaded one more time.
+
+Now all the .json files are converted to .parquet.
+
+
+
+In the next step Reporting Layer was done.
+
+Firstly new s3 bucket and new glue db were created. Also 2 partition keys were created: region, category\_id.&#x20;
+
+After bucket creation a new ETL job was created:
+
+<figure><img src=".gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
+
+The data from both catalogs were taken and joined by id from reference on catalog\_id from statistics like in another example from Athena. Then the data goes to newly created s3 bucket and glue db.
+
+### Data visualization using QuickSight
+
+I created a new account for QuickSight.
+
+Then I give permission for QuickSight to connect to S3 and Athena.
+
+Next, I connect QuickSight to Athena and choose the data in the last created database.
+
+Then I created a new analysis on this data.
+
+I created two charts and published the dashboard:\
+
+
+<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+
+And that's the end of the project. Next steps such as building a dashboard and provide analysis are laying on BI/DS guys.
