@@ -21,7 +21,7 @@ YouTube was selected as the main advertising channel.
 
 YouTube is the second most visited website in the entire world.&#x20;
 
-<figure><img src=".gitbook/assets/image (5) (1).png" alt=""><figcaption><p><a href="https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/">https://www.visualcapitalist.com/the-50-most-visited-websites-in-the-world/</a></p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (10).png" alt=""><figcaption></figcaption></figure>
 
 ### Initial questions to answer:&#x20;
 
@@ -30,9 +30,7 @@ YouTube is the second most visited website in the entire world.&#x20;
 
 ### Used dataset
 
-
-
-<figure><img src=".gitbook/assets/image (11).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
 The dataset was taken from here:&#x20;
 
@@ -44,9 +42,7 @@ For future development there is an option to take this one that updates daily:
 
 ### The architecture of the project
 
-<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption><p>Data Flow diagram</p></figcaption></figure>
-
-
+<figure><img src=".gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
 
 ### Data Lake
 
@@ -141,7 +137,7 @@ After this step, I needed to set up AWS Glue.
 
 I needed to build a pipeline that will cleanse data from a semi-structured to a structured form.
 
-<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption><p>Data pipeline diagram</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
 To do this a Lambda function was created with next properties:
 
@@ -152,7 +148,7 @@ To do this a Lambda function was created with next properties:
 
 After this, new environment variables were added:
 
-<figure><img src=".gitbook/assets/image (1) (1).png" alt=""><figcaption><p>Enviroment variables (s3_cleansed_layer value was changed in web developer tools for this screenshot)</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
 
 The next step was to write a python script:
 
@@ -202,7 +198,7 @@ def lambda_handler(event, context):
 
 The next thing that I did is set the timeout value to 3 minutes (by default timeout is set to 3 seconds):
 
-<figure><img src=".gitbook/assets/image (9).png" alt=""><figcaption><p>General configuration with timeout screenshot</p></figcaption></figure>
+<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 Then it was necessary to configure the test case, in the configuration window I needed to change all "< example bucket>" on an actual bucket name, and also change the "key" value to a path to a test object.&#x20;
 
@@ -263,7 +259,7 @@ The next step was to create a crawler to crawl over all .csv files.  \<bucket\_n
 \
 Crawler created a new partitioned table.
 
-<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
 The table is partitioned by the "region" key which was the reason to place each CSV file in to separate folder:
 
@@ -359,7 +355,7 @@ The Glue "db\_youtube\_cleaned" DB was selected as the target database.
 
 When the crawler completed its work, it created a new partitioned table:
 
-<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (9).png" alt=""><figcaption></figcaption></figure>
 
 Then there was a need to automate the lambda function. So the trigger on the /youtube/raw-statistic-reference-data was created:
 
@@ -378,7 +374,7 @@ Firstly new s3 bucket and new glue db were created. Also 2 partition keys were c
 
 After bucket creation a new ETL job was created:
 
-<figure><img src=".gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
 The data from both catalogs were taken and joined by id from reference on catalog\_id from statistics like in another example from Athena. Then the data goes to newly created s3 bucket and glue db.
 
@@ -395,6 +391,6 @@ Then I created a new analysis on this data.
 I created two charts and published the dashboard:\
 
 
-<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
 
 And that's the end of the project. Next steps such as building a dashboard and provide analysis are laying on BI/DS guys.
