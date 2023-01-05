@@ -1,4 +1,4 @@
-# youtube-data-analysis
+![Frame 6 (1)](https://user-images.githubusercontent.com/63752476/210860445-f136a622-9b1d-454b-a90f-7a48c6b3bed0.png)
 
 ### Main goal
 
