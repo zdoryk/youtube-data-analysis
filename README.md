@@ -30,7 +30,11 @@ YouTube is the second most visited website in the entire world.&#x20;
 
 ### Used dataset
 
-<img src=".gitbook/assets/image (3).png" alt="" data-size="line"> The dataset was taken from here:&#x20;
+
+
+<figure><img src=".gitbook/assets/image (11).png" alt=""><figcaption></figcaption></figure>
+
+The dataset was taken from here:&#x20;
 
 [https://www.kaggle.com/datasets/datasnaek/youtube-new](https://www.kaggle.com/datasets/datasnaek/youtube-new)&#x20;
 
@@ -44,11 +48,9 @@ For future development there is an option to take this one that updates daily:
 
 
 
-
-
 ### Data Lake
 
-The project required to create of three s3 buckets.
+The project required the creation of three s3 buckets.
 
 #### Landing area
 
@@ -146,7 +148,7 @@ To do this a Lambda function was created with next properties:
 1. Name - youtube-data-analysis-lambda-json-to-parquet
 2. Langueage - Python 3.9
 3. Architecture - x86\_64
-4. Also, new role with required permissions was created
+4. Also, a new role with required permissions was created
 
 After this, new environment variables were added:
 
@@ -261,7 +263,7 @@ The next step was to create a crawler to crawl over all .csv files.  \<bucket\_n
 \
 Crawler created a new partitioned table.
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 The table is partitioned by the "region" key which was the reason to place each CSV file in to separate folder:
 
